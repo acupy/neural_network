@@ -47,30 +47,17 @@ class NeuralNetwork(object):
 
         # backpropagation
 
-        delta1 = np.zeros(theta1.shape)
-        delta2 = np.zeros(theta2.shape)
+        d3 = h - y
 
-        for t in range(m):
-            a1t = a1[t,:]
-            z2t = z2[t,:]
-            a2t = a2[t,:]
-            ht = h[t,:]
-            yt = y[t,:]
+        z2 = np.insert(z2, 0, 1, axis=1)
+        d2 = np.multiply((d3*theta2), sigmoid_gradient(z2))[:,1:]
 
-            d3t = ht - yt
+        delta1 = d2.T * a1
+        delta2 = d3.T * a2
 
-            z2t = np.insert(z2t, 0, values=np.ones(1))  # (1, 26)
-            d2t = np.multiply((theta2.T * d3t.T).T, sigmoid_gradient(z2t))  # (1, 26)
-
-            delta1 = delta1 + (d2t[:,1:]).T * a1t
-            delta2 = delta2 + d3t.T * a2t
-
-        delta1 = delta1 / m
-        delta2 = delta2 / m
-
-        # add the gradient regularization term
-        delta1[:,1:] = delta1[:,1:] + (theta1[:,1:] * self.learning_rate) / m
-        delta2[:,1:] = delta2[:,1:] + (theta2[:,1:] * self.learning_rate) / m
+        # gradient regularization term
+        delta1 = (delta1 / m) + (np.insert(theta1[:,1:], 0, 1, axis=1) * self.learning_rate) / m
+        delta2 = (delta2 / m) + (np.insert(theta2[:,1:], 0, 1, axis=1) * self.learning_rate) / m
 
         # unravel the gradient matrices into a single array
         grad = np.concatenate((np.ravel(delta1), np.ravel(delta2)))
