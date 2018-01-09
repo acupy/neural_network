@@ -36,11 +36,9 @@ class NeuralNetwork(object):
 
         J = 0
 
-        # compute the cost
-        for i in range(m):
-            first_term = np.multiply(-y[i,:], np.log(h[i,:]))
-            second_term = np.multiply((1 - y[i,:]), np.log(1 - h[i,:]))
-            J += np.sum(first_term - second_term)
+        first_term = np.multiply(-y, np.log(h))
+        second_term = np.multiply((1 - y), np.log(1 - h))
+        J += np.sum(first_term - second_term)
 
         J = J / m
 
