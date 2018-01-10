@@ -5,11 +5,11 @@ from utils import sigmoid, sigmoid_gradient, encode_labels
 
 
 class NeuralNetwork(object):
-    def __init__(self, input_size, hidden_size, num_labels, learning_rate):
+    def __init__(self, input_size, hidden_size, num_labels, reg_param):
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.num_labels = num_labels
-        self.learning_rate = learning_rate
+        self.reg_param = reg_param
 
     @classmethod
     def feed_forward(cls, X, theta1, theta2):
@@ -34,19 +34,14 @@ class NeuralNetwork(object):
         # feed forward
         a1, z2, a2, z3, h = NeuralNetwork.feed_forward(X, theta1, theta2)
 
-        J = 0
-
         first_term = np.multiply(-y, np.log(h))
         second_term = np.multiply((1 - y), np.log(1 - h))
-        J += np.sum(first_term - second_term)
-
-        J = J / m
+        J = np.sum(first_term - second_term) / m
 
         # cost regularization term
-        J += (float(self.learning_rate) / (2 * m)) * (np.sum(np.power(theta1[:,1:], 2)) + np.sum(np.power(theta2[:,1:], 2)))
+        J += (float(self.reg_param) / (2 * m)) * (np.sum(np.power(theta1[:,1:], 2)) + np.sum(np.power(theta2[:,1:], 2)))
 
         # backpropagation
-
         d3 = h - y
 
         z2 = np.insert(z2, 0, 1, axis=1)
@@ -56,8 +51,8 @@ class NeuralNetwork(object):
         delta2 = d3.T * a2
 
         # gradient regularization term
-        delta1 = (delta1 / m) + (np.insert(theta1[:,1:], 0, 1, axis=1) * self.learning_rate) / m
-        delta2 = (delta2 / m) + (np.insert(theta2[:,1:], 0, 1, axis=1) * self.learning_rate) / m
+        delta1 = (delta1 / m) + (np.insert(theta1[:,1:], 0, 1, axis=1) * self.reg_param) / m
+        delta2 = (delta2 / m) + (np.insert(theta2[:,1:], 0, 1, axis=1) * self.reg_param) / m
 
         # unravel the gradient matrices into a single array
         grad = np.concatenate((np.ravel(delta1), np.ravel(delta2)))
