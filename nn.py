@@ -13,11 +13,9 @@ class NeuralNetwork(object):
 
     @classmethod
     def feed_forward(cls, X, theta1, theta2):
-        m = X.shape[0]
-
-        a1 = np.insert(X, 0, values=np.ones(m), axis=1)
+        a1 = np.insert(X, 0, 1, axis=1)
         z2 = a1 * theta1.T
-        a2 = np.insert(sigmoid(z2), 0, values=np.ones(m), axis=1)
+        a2 = np.insert(sigmoid(z2), 0, 1, axis=1)
         z3 = a2 * theta2.T
         h = sigmoid(z3)
 
@@ -34,25 +32,23 @@ class NeuralNetwork(object):
         # feed forward
         a1, z2, a2, z3, h = NeuralNetwork.feed_forward(X, theta1, theta2)
 
-        first_term = np.multiply(-y, np.log(h))
+        first_term = np.multiply(y, np.log(h))
         second_term = np.multiply((1 - y), np.log(1 - h))
-        J = np.sum(first_term - second_term) / m
+        J = np.sum(first_term + second_term) / -m
 
         # cost regularization term
-        J += (float(self.reg_param) / (2 * m)) * (np.sum(np.power(theta1[:,1:], 2)) + np.sum(np.power(theta2[:,1:], 2)))
+        J += (float(self.reg_param) / (2.0 * m)) * (np.sum(np.power(theta1[:,1:], 2)) + np.sum(np.power(theta2[:,1:], 2)))
 
         # backpropagation
         d3 = h - y
-
-        z2 = np.insert(z2, 0, 1, axis=1)
-        d2 = np.multiply((d3*theta2), sigmoid_gradient(z2))[:,1:]
+        d2 = np.multiply((d3*theta2[:,1:]), sigmoid_gradient(z2))
 
         delta1 = d2.T * a1
         delta2 = d3.T * a2
 
         # gradient regularization term
-        delta1 = (delta1 / m) + (np.insert(theta1[:,1:], 0, 1, axis=1) * self.reg_param) / m
-        delta2 = (delta2 / m) + (np.insert(theta2[:,1:], 0, 1, axis=1) * self.reg_param) / m
+        delta1 = (delta1 / m) + ((np.insert(theta1[:,1:], 0, 0, axis=1) * self.reg_param) / m)
+        delta2 = (delta2 / m) + ((np.insert(theta2[:,1:], 0, 0, axis=1) * self.reg_param) / m)
 
         # unravel the gradient matrices into a single array
         grad = np.concatenate((np.ravel(delta1), np.ravel(delta2)))
@@ -74,7 +70,7 @@ class NeuralNetwork(object):
 
     def get_prediction_accuracy(self, X, y, theta1, theta2):
             a1, z2, a2, z3, h = NeuralNetwork.feed_forward(X, theta1, theta2)
-            y_pred = np.array(np.argmax(h, axis=1) + 1)
+            y_pred = np.array(np.argmax(h, axis=1))
 
             correct = [1 if a == b else 0 for (a, b) in zip(y_pred, y)]
             accuracy = (sum(map(int, correct)) / float(len(correct)))
@@ -82,7 +78,7 @@ class NeuralNetwork(object):
 
     def __random_initialize_weights(self):
         epsilon_init = 0.25
-        return (np.random.random(size=self.hidden_size * (self.input_size + 1) + self.num_labels * (self.hidden_size + 1)) - (2 * epsilon_init)) * epsilon_init
+        return (np.random.random(size=self.hidden_size * (self.input_size + 1) + self.num_labels * (self.hidden_size + 1)) * (2 * epsilon_init)) - epsilon_init
 
     def __unravel_theta1(self, params):
         return np.matrix(np.reshape(params[:self.hidden_size * (self.input_size + 1)], (self.hidden_size, (self.input_size + 1))))
