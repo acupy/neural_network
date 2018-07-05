@@ -8,10 +8,9 @@ def main(hidden_size, learning_rate):
     try:
 
         X, y = load_wine(return_X_y=True)
+        y = y.reshape((y.shape[0],1))
 
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33)
-        y_train = y_train.reshape((y_train.shape[0],1))
-        y_test = y_test.reshape((y_test.shape[0],1))
 
         # set input size to the number of features
         input_size = X_train.shape[1]
